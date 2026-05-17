@@ -1,0 +1,52 @@
+{
+  "title": "Laboratorio DDoS - Monitorización Nginx (Víctima)",
+  "tags": ["ddos", "hpc", "nginx"],
+  "timezone": "browser",
+  "refresh": "1s",
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Tráfico de Red Entrante/Saliente (kbps) - Nodo Víctima",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 9 },
+      "targets": [
+        {
+          "expr": "netdata_net_net_kilobits_persec_average{device=\"enp2s0\"}",
+          "legendFormat": "{{dimension}} - {{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 15
+          },
+          "unit": "bps"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Saturación de CPU (%) - Nodo Víctima",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 9 },
+      "targets": [
+        {
+          "expr": "netdata_system_cpu_percentage_average",
+          "legendFormat": "{{dimension}} - {{instance}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 20
+          },
+          "unit": "percent"
+        }
+      }
+    }
+  ]
+}

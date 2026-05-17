@@ -1,0 +1,14 @@
+---
+- name: DESACTIVAR Sistema de Observabilidad (Consumo Cero)
+  hosts: all
+  become: yes
+  tasks:
+    - name: Detener todos los servicios de monitorización
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+      with_items:
+        - netdata
+        - grafana-server
+      ignore_errors: yes
+      

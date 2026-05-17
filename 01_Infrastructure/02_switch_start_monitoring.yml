@@ -1,0 +1,19 @@
+---
+- name: ACTIVAR Sistema de Observabilidad
+  hosts: all
+  become: yes
+  tasks:
+    - name: Iniciar Netdata en nodos seleccionados
+      systemd:
+        name: netdata
+        state: started
+      when: 
+        - (inventory_hostname == "10.4.8.10") or 
+          (inventory_hostname in groups['workers'] and 
+           inventory_hostname != "10.4.8.21")
+
+    - name: Iniciar Grafana en el Nodo Maestro
+      systemd:
+        name: grafana-server
+        state: started
+      when: inventory_hostname == "10.4.8.10"
