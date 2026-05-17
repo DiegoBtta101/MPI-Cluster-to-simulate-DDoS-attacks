@@ -1,0 +1,60 @@
+---
+- name: Instalación y Configuración de Observabilidad (Netdata + Grafana)
+  hosts: all
+  become: yes
+  vars:
+    parent_ip: "10.4.8.10"
+    api_key: "6d6961-ddos-lab-key-12345" # UUID generado para el streaming
+
+  tasks:
+    # 1. INSTALACIÓN
+    - name: Instalar Netdata en todos los nodos
+      apt:
+        name: netdata
+        state: present
+        update_cache: yes
+
+    - name: Instalar Grafana solo en el Nodo Maestro (Parent)
+      apt:
+        name: grafana
+        state: present
+      when: inventory_hostname == parent_ip
+
+    # 2. CONFIGURACIÓN DEL CHILD (Workers filtrados)
+    - name: Configurar streaming en los nodos hijos
+      copy:
+        dest: /etc/netdata/stream.conf
+        content: |
+          [stream]
+              enabled = yes
+              destination = {{ parent_ip }}:19999
+              api key = {{ api_key }}
+      when: 
+        - inventory_hostname in groups['workers']
+        - inventory_hostname != "10.4.8.21"
+
+    # 3. CONFIGURACIÓN DEL PARENT (Maestro)
+    - name: Configurar recepción en el nodo padre
+      copy:
+        dest: /etc/netdata/stream.conf
+        content: |
+          [{{ api_key }}]
+              enabled = yes
+              default history = 3600
+              default memory mode = ram
+      when: inventory_hostname == parent_ip
+
+    # 4. ASEGURAR ESTADO DETENIDO (Consumo cero)
+    - name: Detener y deshabilitar Netdata en todos los nodos
+      systemd:
+        name: netdata
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Detener y deshabilitar Grafana solo en el Nodo Maestro
+      systemd:
+        name: grafana-server
+        state: stopped
+        enabled: no
+      when: inventory_hostname == parent_ip
